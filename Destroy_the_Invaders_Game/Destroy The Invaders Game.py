@@ -22,6 +22,9 @@ Enemy_Ship3 = loadImage("spr_enemyShip3.png")
 #Laser
 redLaser = loadImage("spr_lazer.png")
 
+#med
+med = loadImage("spr_med.png")
+
 #Background
 BG = pygame.transform.scale((loadImage("spr_background.png")), (WIDTH, HEIGHT))#scale the bg
 
@@ -32,6 +35,25 @@ class Laser:
         self.img = img
         self.mask = pygame.mask.from_surface(self.img)
     
+    def draw(self, window):
+        window.blit(self.img, (self.x, self.y))
+
+    def move(self, vel):
+        self.y += vel
+    
+    def off_screen(self, height):
+        return not(self.y <= height and self.y >= 0)
+
+    def collision(self, obj):
+        return collide(self, obj)
+
+class Upgrade:
+    def __init__(self, x, y, img):
+        self.x = x
+        self.y = y
+        self.img = img
+        self.mask = pygame.mask.from_surface(self.img)
+
     def draw(self, window):
         window.blit(self.img, (self.x, self.y))
 
@@ -76,11 +98,21 @@ class Ship:
         elif self.cool_down_counter > 0:
             self.cool_down_counter += 1
 
-    def shoot(self):
+    def shoot(self, count):        
         if self.cool_down_counter == 0:
-            laser = Laser(self.x+35, self.y, self.laser_img)
-            self.lasers.append(laser)
-            self.cool_down_counter = 1
+            for i in range(count):
+                if count == 1:
+                    laser = Laser(self.x+35, self.y, self.laser_img)
+                    self.lasers.append(laser)
+                    self.cool_down_counter = 1
+                elif count == 2:
+                    laser = Laser(self.x+(i*70), self.y, self.laser_img)
+                    self.lasers.append(laser)
+                    self.cool_down_counter = 1
+                elif count == 3:
+                    laser = Laser(self.x+(i*35), self.y, self.laser_img)
+                    self.lasers.append(laser)
+                    self.cool_down_counter = 1
 
     def get_width(self):
         return self.ship_img.get_width()
@@ -95,6 +127,7 @@ class Player(Ship):
         self.laser_img = redLaser
         self.mask = pygame.mask.from_surface(self.ship_img)
         self.max_healt = health
+        self.upgrades = []
 
     def move_laser(self, vel, objs):
         self.cooldown()
@@ -106,6 +139,9 @@ class Player(Ship):
                 for obj in objs:
                     if laser.collision(obj):   
                         objs.remove(obj)
+                        if random.randrange(0,100) <= 30:
+                            upg = Upgrade(obj.x, obj.y, med)
+                            self.upgrades.append(upg)
                         if laser in self.lasers:
                             self.lasers.remove(laser)
     
@@ -154,9 +190,11 @@ def main():
     wave_length = 5
     enemy_vel = 1
 
+
     player = Player(300, 650)
     player_vel = 5
-    laser_vel = 10 
+    laser_vel = 10
+    laser_count = 1
 
     clock = pygame.time.Clock()
 
@@ -172,6 +210,9 @@ def main():
 
         for enemy in enemies:
             enemy.draw(WIN)
+
+        for upgrade in player.upgrades:
+            upgrade.draw(WIN)
 
         player.draw(WIN)
 
@@ -195,10 +236,12 @@ def main():
             else:
                 continue
 
+        # if len(upgrades) < 1 :
+        #     upg = Upgrade(random.randrange(50, WIDTH-50), random.randrange(0, 1), med)
+        #     upgrades.append(upg)
+            
+
         if len(enemies) == 0:
-            if player.health < player.max_healt:
-                player.health += 50
-            level += 1
             wave_length += 5
             for i in range(wave_length):
                 enemy = Enemy(random.randrange(50, WIDTH-50), random.randrange(-1000, -100), random.choice(["one", "two", "three"]))
@@ -218,7 +261,17 @@ def main():
         if keys[pygame.K_s] and player.y + player_vel + 100 < HEIGHT: #Right
             player.y += player_vel
         if keys[pygame.K_SPACE]:
-            player.shoot()
+            player.shoot(laser_count)
+
+        for upgrade in player.upgrades[:]:
+            upgrade.move(4)
+
+            if collide(upgrade, player):
+                player.health += 10
+                if player.health > player.max_healt:
+                    player.health = player.max_healt
+                player.upgrades.remove(upgrade)
+            
 
         for enemy in enemies[:]:
             enemy.move(enemy_vel)
