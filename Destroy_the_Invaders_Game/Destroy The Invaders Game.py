@@ -24,6 +24,7 @@ redLaser = loadImage("spr_lazer.png")
 
 #med
 med = loadImage("spr_med.png")
+ammo = loadImage("spr_ammo.png")
 
 #Background
 BG = pygame.transform.scale((loadImage("spr_background.png")), (WIDTH, HEIGHT))#scale the bg
@@ -140,7 +141,10 @@ class Player(Ship):
                     if laser.collision(obj):   
                         objs.remove(obj)
                         if random.randrange(0,100) <= 30:
-                            upg = Upgrade(obj.x, obj.y, med)
+                            if random.randrange(0,2) == 1:
+                                upg = Upgrade(obj.x, obj.y, med)
+                            else:
+                                upg = Upgrade(obj.x, obj.y, ammo)
                             self.upgrades.append(upg)
                         if laser in self.lasers:
                             self.lasers.remove(laser)
@@ -195,6 +199,7 @@ def main():
     player_vel = 5
     laser_vel = 10
     laser_count = 1
+    upgradeLaserTime = 0
 
     clock = pygame.time.Clock()
 
@@ -235,13 +240,9 @@ def main():
                 run = False
             else:
                 continue
-
-        # if len(upgrades) < 1 :
-        #     upg = Upgrade(random.randrange(50, WIDTH-50), random.randrange(0, 1), med)
-        #     upgrades.append(upg)
             
-
         if len(enemies) == 0:
+            level += 1
             wave_length += 5
             for i in range(wave_length):
                 enemy = Enemy(random.randrange(50, WIDTH-50), random.randrange(-1000, -100), random.choice(["one", "two", "three"]))
@@ -267,11 +268,23 @@ def main():
             upgrade.move(4)
 
             if collide(upgrade, player):
-                player.health += 10
-                if player.health > player.max_healt:
-                    player.health = player.max_healt
+                if upgrade.img == med:
+                    player.health += 10
+                    if player.health > player.max_healt:
+                        player.health = player.max_healt
+                else:
+                    upgradeLaserTime = time.time()
+                    if random.randint(0, 2) == 1:
+                        laser_count = 2
+                    else:
+                        laser_count = 3    
                 player.upgrades.remove(upgrade)
-            
+
+        removeLaserUpg = time.time()
+        if removeLaserUpg - upgradeLaserTime >= 3:
+            laser_count = 1   
+        # print(upgradeTime)
+        # print(removeUpg) 
 
         for enemy in enemies[:]:
             enemy.move(enemy_vel)
