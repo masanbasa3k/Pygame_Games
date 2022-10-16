@@ -30,6 +30,33 @@ speed = loadImage("spr_speed.png")
 #Background
 BG = pygame.transform.scale((loadImage("spr_background.png")), (WIDTH, HEIGHT))#scale the bg
 
+explosionGif = [loadImage("spr_explosion1.png"),
+loadImage("spr_explosion2.png"),
+loadImage("spr_explosion3.png"),
+loadImage("spr_explosion4.png"),
+loadImage("spr_explosion5.png"),
+loadImage("spr_explosion6.png"),
+loadImage("spr_explosion7.png"),
+loadImage("spr_explosion8.png")]
+
+class Explosion:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.sprites = explosionGif
+        self.current_spr = 0
+        self.img = self.sprites[self.current_spr]
+        self.mask = pygame.mask.from_surface(self.img)
+
+    def draw(self, window):
+        window.blit(self.img, (self.x, self.y))
+
+    def update(self):
+        self.current_spr += 1
+        self.img = self.sprites[self.current_spr]
+
+
+
 class Laser:
     def __init__(self, x, y, img):
         self.x = x
@@ -130,6 +157,7 @@ class Player(Ship):
         self.mask = pygame.mask.from_surface(self.ship_img)
         self.max_healt = health
         self.upgrades = []
+        self.explosions = []
 
     def move_laser(self, vel, objs):
         self.cooldown()
@@ -139,8 +167,11 @@ class Player(Ship):
                 self.lasers.remove(laser)
             else:
                 for obj in objs:
-                    if laser.collision(obj):   
+                    if laser.collision(obj):
                         objs.remove(obj)
+                        # add exp
+                        exp = Explosion(obj.x-100, obj.y-150)
+                        self.explosions.append(exp)
                         if random.randrange(0,100) <= 30:
                             r = random.randrange(0,3)
                             if r == 1:
@@ -198,7 +229,6 @@ def main():
     wave_length = 5
     enemy_vel = 1
 
-
     player = Player(300, 650)
     player_vel = 5
     laser_vel = 10
@@ -223,6 +253,9 @@ def main():
 
         for upgrade in player.upgrades:
             upgrade.draw(WIN)
+
+        for explosion in player.explosions:
+            explosion.draw(WIN)
 
         player.draw(WIN)
 
@@ -268,6 +301,12 @@ def main():
             player.y += player_vel
         if keys[pygame.K_SPACE]:
             player.shoot(laser_count)
+
+        for explosion in player.explosions[:]:
+            if explosion.current_spr >= 7:
+                player.explosions.remove(explosion)
+            else:
+                explosion.update()
 
         for upgrade in player.upgrades[:]:
             upgrade.move(4)
