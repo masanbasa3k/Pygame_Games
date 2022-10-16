@@ -25,6 +25,7 @@ redLaser = loadImage("spr_lazer.png")
 #med
 med = loadImage("spr_med.png")
 ammo = loadImage("spr_ammo.png")
+speed = loadImage("spr_speed.png")
 
 #Background
 BG = pygame.transform.scale((loadImage("spr_background.png")), (WIDTH, HEIGHT))#scale the bg
@@ -141,8 +142,11 @@ class Player(Ship):
                     if laser.collision(obj):   
                         objs.remove(obj)
                         if random.randrange(0,100) <= 30:
-                            if random.randrange(0,2) == 1:
+                            r = random.randrange(0,3)
+                            if r == 1:
                                 upg = Upgrade(obj.x, obj.y, med)
+                            elif r == 2:
+                                upg = Upgrade(obj.x, obj.y, speed)
                             else:
                                 upg = Upgrade(obj.x, obj.y, ammo)
                             self.upgrades.append(upg)
@@ -200,6 +204,7 @@ def main():
     laser_vel = 10
     laser_count = 1
     upgradeLaserTime = 0
+    upgradeSpeedTime = 0
 
     clock = pygame.time.Clock()
 
@@ -272,19 +277,24 @@ def main():
                     player.health += 10
                     if player.health > player.max_healt:
                         player.health = player.max_healt
-                else:
+                elif upgrade.img == ammo:
                     upgradeLaserTime = time.time()
                     if random.randint(0, 2) == 1:
                         laser_count = 2
                     else:
-                        laser_count = 3    
+                        laser_count = 3 
+                elif upgrade.img == speed:
+                    upgradeSpeedTime = time.time()
+                    player_vel = 8
+
                 player.upgrades.remove(upgrade)
 
         removeLaserUpg = time.time()
+        removeSpeedUpg = time.time()
         if removeLaserUpg - upgradeLaserTime >= 3:
-            laser_count = 1   
-        # print(upgradeTime)
-        # print(removeUpg) 
+            laser_count = 1  
+        if removeSpeedUpg - upgradeSpeedTime >= 5:
+            player_vel = 5
 
         for enemy in enemies[:]:
             enemy.move(enemy_vel)
