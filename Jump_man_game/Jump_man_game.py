@@ -7,7 +7,7 @@ pygame.init()
 SCREEN_WIDTH, SCREEN_HEIGHT = 640*2, 480
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Light in the Space")
-file_dir = 'Your assets directory'
+file_dir = '/Users/beyazituysal/Documents/PythonProjects/PygameGames/TestAiGame/imgs/jump_assets'
 
 def loadImage(spr):
     return pygame.image.load(os.path.join(f"{file_dir}/{spr}"))
@@ -56,12 +56,13 @@ class Man:
         if self.step_index >= 10:
             self.step_index = 0
 
-        if userInput[pygame.K_SPACE] and not self.man_jump:
+        if userInput[pygame.K_SPACE] and not self.man_jump and self.man_rect.y == 260:
             self.man_run = False
             self.man_jump = True
         elif not (self.man_jump):
             self.man_jump = False
             self.man_run = True
+            # self.X_POS == 260
 
     def run(self):
         self.image = self.run_img[self.step_index // 5]
@@ -164,7 +165,7 @@ def main():
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                quit()
 
         SCREEN.fill((255,255,255))
         userInput = pygame.key.get_pressed()
@@ -218,7 +219,7 @@ def menu(death_count):
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                quit()
             if event.type == pygame.KEYDOWN:
                 main()
 
